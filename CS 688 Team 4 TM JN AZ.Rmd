@@ -1,0 +1,57 @@
+---
+title: "CS 688 Team 4 TM"
+author: "Janhavi Nerurkar & Angela (Xiaolu) Zhai"
+date: "11/10/2018"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd("~/Documents/MSSP/CS 688")
+```
+
+
+```{r}
+##library('pdftools')
+##library('tidyverse')
+##library('tidytext')
+##library('stringr')
+text <- pdf_text('ContentServer.asp.pdf')
+text2 <- unlist(strsplit(text, split=", "))
+text3 <- grep("text2", iconv(text2, "latin1", "ASCII", sub="text2"))
+text4 <- text2[-text3] %>%
+  paste(collapse = " ")
+text <- gsub("[^\\p{L}']+", " ", text4, perl = TRUE)
+text_df <- data.frame(text)
+text_df$test <- lapply(text_df, as.character) 
+data(stop_words)
+token <- text_df %>%
+  unnest_tokens(word, test) %>%
+  select(-text) %>%
+  anti_join(stop_words) %>%
+  count(word, sort = TRUE) %>%
+  mutate(reorder(word, n))
+article1_20 <- data.frame(head(token, 20))
+article1_50 <- data.frame(head(token, 50))
+article1_100 <- data.frame(head(token, 100))
+```
+
+
+```{r}
+ggplot(data = article1_20, aes(x = word, y = n)) + 
+  geom_bar(stat = "identity", fill = "Blue") +
+  labs(title = "Frequency for the 100 Most Frequent Words", 
+       x = "Word", y = "Frequency") +
+  aes(x=reorder(word,-n,sum),y=n) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1)) + 
+  geom_text(aes(y = n, 
+                label = n), size=3, 
+            position = position_dodge(1), vjust = -0.2) 
+```
+```{r}
+##library(wordcloud)
+##library(RColorBrewer)
+wordcloud(article1_100$word, article1_50$n, max.words = 100, 
+          random.order = FALSE, colors = brewer.pal(5, "Dark2"))
+```
+
